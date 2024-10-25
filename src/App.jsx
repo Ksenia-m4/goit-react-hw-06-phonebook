@@ -1,32 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { nanoid } from "nanoid";
+import { useEffect, useMemo, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import "./App.css";
 import Container from "./components/Container/Container";
 import ContactForm from "./components/ContactForm/ContactForm";
 import ContactList from "./components/ContactList/ContactList";
 import ContactFilter from "./components/Filter/ContactFilter";
+import { addContact, deleteContact } from "./store/contacts/contactsSlice";
+
+import "./App.css";
+import { setFilter } from "./store/filter/filterSlice";
 
 const LS_KEY = "contacts_list";
 
-const contactsList = [
-  { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-  { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-  { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-  { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-];
-
 const App = () => {
-  const [contacts, setContacts] = useState(() => {
-    const savedContacts = window.localStorage.getItem(LS_KEY);
-    return savedContacts ? JSON.parse(savedContacts) : contactsList;
-  });
-
-  const [filter, setFilter] = useState("");
+  const contacts = useSelector((state) => state.contacts);
+  const filter = useSelector((state) => state.filter);
+  const dispatch = useDispatch();
 
   const isFirstRender = useRef(true);
 
-  // componentDidUpdate (только после первого рендера)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -35,7 +27,7 @@ const App = () => {
     localStorage.setItem(LS_KEY, JSON.stringify(contacts));
   }, [contacts]);
 
-  const addContact = (name, number) => {
+  const handleAddContact = (name, number) => {
     if (!name || !number) {
       return alert("Both name and number are required");
     }
@@ -48,25 +40,15 @@ const App = () => {
       return alert(`${name} is already in contacts`);
     }
 
-    const newContact = {
-      id: nanoid(),
-      name,
-      number,
-    };
-
-    setContacts((prevContacts) => {
-      return [newContact, ...prevContacts];
-    });
+    dispatch(addContact(name, number));
   };
 
-  const deleteContact = (contactId) => {
-    setContacts((prevState) => {
-      return prevState.filter((contact) => contact.id !== contactId);
-    });
+  const handleDeleteContact = (contactId) => {
+    dispatch(deleteContact(contactId));
   };
 
   const onChangeFilter = (e) => {
-    setFilter(e.target.value);
+    dispatch(setFilter(e.target.value));
   };
 
   const filteredContacts = useMemo(() => {
@@ -80,13 +62,13 @@ const App = () => {
     <>
       <Container>
         <h1 className="Title">Phonebook</h1>
-        <ContactForm onSubmit={addContact} />
+        <ContactForm onSubmit={handleAddContact} />
 
         <h2 className="SubTitle">Contacts</h2>
         <ContactFilter value={filter} onChange={onChangeFilter} />
         <ContactList
           contacts={filteredContacts}
-          onDelete={deleteContact}
+          onDelete={handleDeleteContact}
         ></ContactList>
       </Container>
     </>
