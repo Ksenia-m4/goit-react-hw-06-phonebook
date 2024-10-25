@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Container from "./components/Container/Container";
@@ -10,22 +10,10 @@ import { addContact, deleteContact } from "./store/contacts/contactsSlice";
 import "./App.css";
 import { setFilter } from "./store/filter/filterSlice";
 
-const LS_KEY = "contacts_list";
-
 const App = () => {
   const contacts = useSelector((state) => state.contacts);
   const filter = useSelector((state) => state.filter);
   const dispatch = useDispatch();
-
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    localStorage.setItem(LS_KEY, JSON.stringify(contacts));
-  }, [contacts]);
 
   const handleAddContact = (name, number) => {
     if (!name || !number) {
