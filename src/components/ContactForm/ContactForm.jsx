@@ -1,11 +1,15 @@
-import PropTypes from "prop-types";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import { addContact } from "../../store/contacts/contactsSlice";
 
 import css from "./ContactForm.module.css";
-import useLocalStorage from "../../hooks/useLocalStorage";
 
-const ContactForm = ({ onSubmit }) => {
-  const [contactName, setContactName] = useLocalStorage("name", "");
-  const [contactNumber, setContactNumber] = useLocalStorage("number", "");
+const ContactForm = () => {
+  const [contactName, setContactName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const contacts = useSelector((state) => state.contacts);
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +34,16 @@ const ContactForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(contactName, contactNumber);
+
+    const duplicateContact = contacts.find(
+      (contact) => contact.name.toLowerCase() === contactName.toLowerCase()
+    );
+
+    if (duplicateContact) {
+      return alert(`${contactName} is already in contacts`);
+    }
+
+    dispatch(addContact(contactName, contactNumber));
 
     reset();
   };
@@ -62,10 +75,6 @@ const ContactForm = ({ onSubmit }) => {
       <button type="submit">Add contact</button>
     </form>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ContactForm;
